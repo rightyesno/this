@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grammar and Spell Checker</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        textarea { width: 100%; height: 200px; padding: 10px; }
+        #results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<h1>Grammar and Spell Checker</h1>
+
+<textarea id="textInput" placeholder="Type or paste your text here..."></textarea><br>
+<button onclick="checkGrammar()">Check Grammar and Spelling</button>
+
+<div id="results"></div>
+
+<script>
+    function checkGrammar() {
+        const text = document.getElementById("textInput").value;
+
+        // Send a request to LanguageTool API
+        fetch("https://api.languagetool.org/v2/check", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: `text=${encodeURIComponent(text)}&language=en-US`,
+        })
+        .then(response => response.json())
+        .then(data => {
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = '';  // Clear previous results
+
+            if (data.matches.length === 0) {
+                resultsDiv.innerHTML = "<p>No grammar or spelling issues found.</p>";
+            } else {
+                data.matches.forEach(match => {
+                    const issue = document.createElement("p");
+                    issue.innerHTML = `<strong>Issue:</strong> ${match.message}<br><strong>Suggestion:</strong> ${match.replacements.map(r => r.value).join(", ")}`;
+                    resultsDiv.appendChild(issue);
+                });
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            document.getElementById("results").innerHTML = "<p>Error occurred while checking text.</p>";
+        });
+    }
+</script>
+
+</body>
+</html>
