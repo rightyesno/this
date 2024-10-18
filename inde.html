@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grammar and Spell Checker</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { position: relative; }
+        textarea, .highlightedText {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+        textarea { position: absolute; top: 0; left: 0; background: transparent; z-index: 1; color: transparent; caret-color: black; }
+        .highlightedText {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            z-index: 0;
+        }
+        .highlight { background-color: yellow; }
+        #results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<h1>Grammar and Spell Checker with Highlighting</h1>
+
+<div class="container">
+    <textarea id="textInput" placeholder="Type or paste your text here..." oninput="syncText()"></textarea>
+    <div class="highlightedText" id="highlightedText"></div>
+</div>
+<br>
+<button onclick="checkGrammar()">Check Grammar and Spelling</button>
+
+<div id="results"></div>
+
+<script>
+    function syncText() {
+        // Sync the content of the textarea to the highlighted div without highlighting yet
+        const text = document.getElementById("textInput").value;
+        document.getElementById("highlightedText").textContent = text;
+    }
+
+    function checkGrammar() {
+        const text = document.getElementById("textInput").value;
+
+        // Send a request to LanguageTool API
+        fetch("https://api.languagetool.org/v2/check", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: `text=${encodeURIComponent(text)}&language=en-US`,
+        })
+        .then(response => response.json())
+        .then(data => {
+            const highlightedTextDiv = document.getElementById("highlightedText");
+            let highlightedText = text;
+            let offsetAdjustment = 0;
+
+            if (data.matches.length === 0) {
+                document.getElementById("results").innerHTML = "<p>No grammar or spelling issues found.</p>";
+                syncText();
+            } else {
+                data.matches.forEach(match => {
+                    const start = match.offset + offsetAdjustment;
+                    const end = start + match.length;
+
+                    // Insert span with 'highlight' class around the error
+                    highlightedText = highlightedText.substring(0, start) + 
+                                      `<span class="highlight">${highlightedText.substring(start, end)}</span>` + 
+                                      highlightedText.substring(end);
+
+                    // Adjust offset to account for the length of the added span tags
+                    offsetAdjustment += `<span class="highlight"></span>`.length;
+                });
+
+                // Update the highlighted div with highlighted errors
+                highlightedTextDiv.innerHTML = highlightedText;
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            document.getElementById("results").innerHTML = "<p>Error occurred while checking text.</p>";
+        });
+    }
+</script>
+
+</body>
+</html>
