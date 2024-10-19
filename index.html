@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grammar and Spell Checker with Highlighting</title>
+    <title>about: blank</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; }
         .container { position: relative; }
@@ -35,14 +35,14 @@
 </head>
 <body>
 
-<h1>Grammar and Spell Checker with Highlighting</h1>
+<h1>Grammar Checker</h1>
 
 <div class="container">
     <textarea id="textInput" placeholder="Type or paste your text here..." oninput="syncText()"></textarea>
     <div class="highlightedText" id="highlightedText"></div>
 </div>
 <br>
-<button onclick="checkGrammar()">Check Grammar and Spelling</button>
+<button onclick="checkGrammar()">Check Text</button>
 
 <div id="results"></div>
 
@@ -74,7 +74,7 @@
             resultsDiv.innerHTML = '';  // Clear previous results
 
             if (data.matches.length === 0) {
-                resultsDiv.innerHTML = "<p>No grammar or spelling issues found.</p>";
+                resultsDiv.innerHTML = "<p>No grammar, spelling, or punctuation issues found.</p>";
                 syncText(); // No errors, sync plain text
             } else {
                 // Process and highlight errors
