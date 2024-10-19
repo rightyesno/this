@@ -93,9 +93,11 @@
                     offsetAdjustment += `<span class="highlight"></span>`.length;
 
                     // Create a detailed issue display
+                    const line = text.substr(0, match.offset).split('\n').length; // Get line number
                     const issue = document.createElement("p");
                     issue.innerHTML = `<strong>Issue ${index + 1}:</strong> ${match.message}<br>
                                        <strong>Error:</strong> "${errorSnippet}"<br>
+                                       <strong>Line:</strong> ${line}<br>
                                        <strong>Position:</strong> Character ${match.offset} to ${match.offset + match.length}<br>
                                        <strong>Suggestion:</strong> ${match.replacements.map(r => r.value).join(", ")}`;
                     resultsDiv.appendChild(issue);
