@@ -106,7 +106,7 @@
                 resultsDiv.innerHTML = "<p>No grammar or spelling issues found.</p>";
             }
 
-            // Always check for punctuation issues
+            // Check for punctuation issues
             const punctuationIssues = checkForPunctuationIssues(text);
             if (punctuationIssues.length > 0) {
                 punctuationIssues.forEach(issue => {
@@ -139,6 +139,9 @@
             // AI Suggestion: Improving style or rephrasing
             const smartSuggestion = generateSmartSuggestions(text, data.matches);
             aiSuggestionsDiv.innerHTML = `<strong>AI Suggestion:</strong> ${smartSuggestion}`;
+            
+            // Update highlighted text
+            highlightedTextDiv.innerHTML = highlightedText;
         })
         .catch(error => {
             console.error("Error:", error);
@@ -214,7 +217,7 @@
         }
 
         // Check for run-on sentences
-        const runOnSentenceRegex = /(\w+,\s+)(and|but|or|nor)(\s+\w+)/g;
+        const runOnSentenceRegex = /(\w+[,;]?\s+)+(\w+[,;]?\s+){2,}/g;
         const runOnMatches = text.match(runOnSentenceRegex);
         if (runOnMatches) {
             runOnMatches.forEach(match => {
@@ -250,7 +253,6 @@
             if (trimmedLine && line.startsWith(' ')) {
                 issues.push(`Line ${index + 1} has leading spaces. Consider removing the indent.`);
             }
-            // Additional checks for new paragraphs could be added here.
         });
 
         return issues;
