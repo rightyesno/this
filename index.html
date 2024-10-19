@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>about: blank</title>
+    <title>Advanced Grammar and Punctuation Checker</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; }
         .container { position: relative; }
@@ -134,9 +134,6 @@
                 });
             }
 
-            // Update the highlighted div with the highlighted errors
-            highlightedTextDiv.innerHTML = highlightedText;
-
             // AI Suggestion: Improving style or rephrasing
             const smartSuggestion = generateSmartSuggestions(text, data.matches);
             aiSuggestionsDiv.innerHTML = `<strong>AI Suggestion:</strong> ${smartSuggestion}`;
@@ -214,7 +211,7 @@
             });
         }
 
-        // Check for run-on sentences (very basic check based on conjunctions)
+        // Check for run-on sentences
         const runOnSentenceRegex = /(\w+,\s+)(and|but|or|nor)(\s+\w+)/g;
         const runOnMatches = text.match(runOnSentenceRegex);
         if (runOnMatches) {
@@ -231,7 +228,7 @@
             "your": "you're",
             "than": "then"
         };
-        
+
         Object.keys(commonlyConfusedWords).forEach(word => {
             const regex = new RegExp(`\\b${word}\\b`, 'gi');
             if (text.match(regex)) {
@@ -258,15 +255,33 @@
     }
 
     function generateSmartSuggestions(text, matches) {
-        // Simple AI suggestions (mock implementation)
         const suggestions = [];
-        if (text.split(' ').length > 15) {
+        const wordCount = text.split(' ').length;
+
+        // Check for clarity and complexity
+        if (wordCount > 20) {
             suggestions.push("Consider breaking long sentences into smaller ones for clarity.");
         }
         if (matches.length > 3) {
             suggestions.push("You have multiple issues. Consider revising the entire text for coherence.");
         }
-        return suggestions.join(" ");
+
+        // Suggest on tone/formality
+        if (/^(hey|hi|hello|what's up)/i.test(text)) {
+            suggestions.push("Your text has an informal tone. Consider making it more formal if necessary.");
+        }
+
+        if (/^(i think|i believe|i feel)/i.test(text)) {
+            suggestions.push("Consider providing more evidence or examples to support your opinion.");
+        }
+
+        // Suggest overall structure
+        const paragraphCount = text.split('\n').filter(paragraph => paragraph.trim()).length;
+        if (paragraphCount > 5) {
+            suggestions.push("Your text has multiple paragraphs. Ensure each paragraph has a clear main idea.");
+        }
+
+        return suggestions.length > 0 ? suggestions.join(" ") : "Your writing looks good!";
     }
 </script>
 
