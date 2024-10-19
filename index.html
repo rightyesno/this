@@ -1,22 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>about: blank</title>
+    <title>Grammar and Punctuation Checker</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-
-        .container {
-            position: relative;
-        }
-
-        textarea,
-        .highlightedText {
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { position: relative; }
+        textarea, .highlightedText {
             width: 100%;
             height: 200px;
             padding: 10px;
@@ -24,227 +15,235 @@
             font-family: inherit;
             line-height: 1.5;
         }
-
-        textarea {
-            position: absolute;
-            top: 0;
-            left: 0;
-            background: transparent;
-            z-index: 1;
-            color: transparent;
-            caret-color: black;
-            /* Only caret visible */
+        textarea { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            background: transparent; 
+            z-index: 1; 
+            color: transparent; 
+            caret-color: black; /* Only caret visible */
         }
-
         .highlightedText {
-            white-space: pre-wrap;
-            /* Preserve whitespace and newlines */
-            word-wrap: break-word;
-            /* Ensure long words break */
+            white-space: pre-wrap; /* Preserve whitespace and newlines */
+            word-wrap: break-word; /* Ensure long words break */
             z-index: 0;
         }
-
-        .highlight {
-            background-color: yellow;
-        }
-
-        #results {
-            margin-top: 20px;
-        }
-
-        #aiSuggestions {
-            margin-top: 20px;
-            font-style: italic;
-        }
+        .highlight { background-color: yellow; }
+        #results { margin-top: 20px; }
+        #aiSuggestions { margin-top: 20px; font-style: italic; }
     </style>
 </head>
-
 <body>
 
-    <h1>Grammar Checker</h1>
+<h1>Grammar and Punctuation Checker</h1>
 
-    <div class="container">
-        <textarea id="textInput" placeholder="Type or paste your text here..." oninput="syncText()"></textarea>
-        <div class="highlightedText" id="highlightedText"></div>
-    </div>
-    <br>
-    <button onclick="checkGrammar()">Check Text</button>
+<div class="container">
+    <textarea id="textInput" placeholder="Type or paste your text here..." oninput="syncText()"></textarea>
+    <div class="highlightedText" id="highlightedText"></div>
+</div>
+<br>
+<button onclick="checkGrammar()">Check Text</button>
 
-    <div id="results"></div>
-    <div id="aiSuggestions"></div>
+<div id="results"></div>
+<div id="aiSuggestions"></div>
 
-    <script>
-        // Sync the content of the textarea to the div for highlighting
-        function syncText() {
-            const text = document.getElementById("textInput").value;
-            document.getElementById("highlightedText").textContent = text; // Initially without highlighting
-        }
+<script>
+    function syncText() {
+        const text = document.getElementById("textInput").value;
+        document.getElementById("highlightedText").textContent = text; // Initially without highlighting
+    }
 
-        function checkGrammar() {
-            const text = document.getElementById("textInput").value;
+    function checkGrammar() {
+        const text = document.getElementById("textInput").value;
 
-            // Send a request to LanguageTool API
-            fetch("https://api.languagetool.org/v2/check", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: `text=${encodeURIComponent(text)}&language=en-US`,
-            })
-                .then(response => response.json())
-                .then(data => {
-                    const highlightedTextDiv = document.getElementById("highlightedText");
-                    const resultsDiv = document.getElementById("results");
-                    const aiSuggestionsDiv = document.getElementById("aiSuggestions");
+        // Send a request to LanguageTool API
+        fetch("https://api.languagetool.org/v2/check", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: `text=${encodeURIComponent(text)}&language=en-US`,
+        })
+        .then(response => response.json())
+        .then(data => {
+            const highlightedTextDiv = document.getElementById("highlightedText");
+            const resultsDiv = document.getElementById("results");
+            const aiSuggestionsDiv = document.getElementById("aiSuggestions");
 
-                    let highlightedText = text;
-                    let offsetAdjustment = 0;
+            let highlightedText = text;
+            let offsetAdjustment = 0;
 
-                    resultsDiv.innerHTML = '';  // Clear previous results
-                    aiSuggestionsDiv.innerHTML = '';  // Clear previous suggestions
+            resultsDiv.innerHTML = '';  // Clear previous results
+            aiSuggestionsDiv.innerHTML = '';  // Clear previous suggestions
 
-                    // Process and highlight grammar/spelling errors
-                    if (data.matches.length > 0) {
-                        data.matches.forEach((match, index) => {
-                            const start = match.offset + offsetAdjustment;
-                            const end = start + match.length;
-                            const errorSnippet = text.slice(match.offset, match.offset + match.length);
+            // Process and highlight grammar/spelling errors
+            if (data.matches.length > 0) {
+                data.matches.forEach((match, index) => {
+                    const start = match.offset + offsetAdjustment;
+                    const end = start + match.length;
+                    const errorSnippet = text.slice(match.offset, match.offset + match.length);
 
-                            // Highlight the error in the text using a span
-                            highlightedText = highlightedText.substring(0, start) +
-                                `<span class="highlight">${highlightedText.substring(start, end)}</span>` +
-                                highlightedText.substring(end);
+                    // Highlight the error in the text using a span
+                    highlightedText = highlightedText.substring(0, start) + 
+                                      `<span class="highlight">${highlightedText.substring(start, end)}</span>` + 
+                                      highlightedText.substring(end);
 
-                            // Adjust offset for added span tags
-                            offsetAdjustment += `<span class="highlight"></span>`.length;
+                    // Adjust offset for added span tags
+                    offsetAdjustment += `<span class="highlight"></span>`.length;
 
-                            // Create a detailed issue display
-                            const issue = document.createElement("p");
-                            issue.innerHTML = `<strong>Issue ${index + 1}:</strong> ${match.message}<br>
+                    // Create a detailed issue display
+                    const issue = document.createElement("p");
+                    issue.innerHTML = `<strong>Issue ${index + 1}:</strong> ${match.message}<br>
                                        <strong>Error:</strong> "${errorSnippet}"<br>
                                        <strong>Position:</strong> Character ${match.offset} to ${match.offset + match.length}<br>
                                        <strong>Suggestion:</strong> ${match.replacements.map(r => r.value).join(", ")}`;
-                            resultsDiv.appendChild(issue);
-                        });
-                    } else {
-                        resultsDiv.innerHTML = "<p>No grammar or spelling issues found.</p>";
-                    }
-
-                    // Always check for punctuation issues
-                    const punctuationIssues = checkForPunctuationIssues(text);
-                    if (punctuationIssues.length > 0) {
-                        punctuationIssues.forEach(issue => {
-                            const issueElement = document.createElement("p");
-                            issueElement.innerHTML = issue;
-                            resultsDiv.appendChild(issueElement);
-                        });
-                    }
-
-                    // Update the highlighted div with the highlighted errors
-                    highlightedTextDiv.innerHTML = highlightedText;
-
-                    // AI Suggestion: Improving style or rephrasing
-                    const smartSuggestion = generateSmartSuggestions(text, data.matches);
-                    aiSuggestionsDiv.innerHTML = `<strong>AI Suggestion:</strong> ${smartSuggestion}`;
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    document.getElementById("results").innerHTML = "<p>Error occurred while checking text.</p>";
+                    resultsDiv.appendChild(issue);
                 });
+            } else {
+                resultsDiv.innerHTML = "<p>No grammar or spelling issues found.</p>";
+            }
+
+            // Always check for punctuation issues
+            const punctuationIssues = checkForPunctuationIssues(text);
+            if (punctuationIssues.length > 0) {
+                punctuationIssues.forEach(issue => {
+                    const issueElement = document.createElement("p");
+                    issueElement.innerHTML = issue;
+                    resultsDiv.appendChild(issueElement);
+                });
+            }
+
+            // Check for additional grammar rules
+            const grammarIssues = checkForGrammarRules(text);
+            if (grammarIssues.length > 0) {
+                grammarIssues.forEach(issue => {
+                    const issueElement = document.createElement("p");
+                    issueElement.innerHTML = issue;
+                    resultsDiv.appendChild(issueElement);
+                });
+            }
+
+            // Update the highlighted div with the highlighted errors
+            highlightedTextDiv.innerHTML = highlightedText;
+
+            // AI Suggestion: Improving style or rephrasing
+            const smartSuggestion = generateSmartSuggestions(text, data.matches);
+            aiSuggestionsDiv.innerHTML = `<strong>AI Suggestion:</strong> ${smartSuggestion}`;
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            document.getElementById("results").innerHTML = "<p>Error occurred while checking text.</p>";
+        });
+    }
+
+    function checkForPunctuationIssues(text) {
+        const issues = [];
+        const sentences = text.split(/(?<=[.!?])/).map(sentence => sentence.trim()).filter(Boolean);
+
+        // Check for missing final punctuation in sentences
+        sentences.forEach(sentence => {
+            const lastChar = sentence.slice(-1);
+            if (![".", "!", "?"].includes(lastChar)) {
+                issues.push(`The sentence "${sentence}" may be missing punctuation at the end.`);
+            }
+
+            const questionWords = /^(what|how|why|where|is|are|do|does|can|could|would|should|who)\s/i;
+            const isQuestion = questionWords.test(sentence);
+
+            if (lastChar === '?' && !isQuestion) {
+                issues.push(`The sentence "${sentence}" appears to be a statement but ends with a question mark.`);
+            } else if (isQuestion && lastChar === '.') {
+                issues.push(`Consider changing the period to a question mark in: "${sentence}".`);
+            }
+        });
+
+        sentences.forEach(sentence => {
+            const clauses = sentence.split(",").map(clause => clause.trim());
+            if (clauses.length > 1 && clauses.some(clause => clause.includes("and") || clause.includes("but"))) {
+                issues.push(`Check for possible comma splice in this sentence: "${sentence}"`);
+            }
+
+            const commaCount = (sentence.match(/,/g) || []).length;
+            if (commaCount > 2) {
+                issues.push(`Consider reviewing your comma usage in the sentence: "${sentence}"`);
+            }
+
+            const introductoryPhrases = /^(although|because|if|when|while|after|before|since|despite|in order to|to|as|for)\s/i;
+            if (introductoryPhrases.test(sentence) && !sentence.includes(',')) {
+                issues.push(`Consider adding a comma after the introductory phrase in: "${sentence}"`);
+            }
+        });
+
+        const questionMarks = (text.match(/\?/g) || []).length;
+        const exclamationMarks = (text.match(/!/g) || []).length;
+        if (questionMarks > 1) {
+            issues.push("Too many question marks detected. Consider rephrasing.");
+        }
+        if (exclamationMarks > 1) {
+            issues.push("Too many exclamation marks detected. Consider rephrasing.");
         }
 
-        // Check for common punctuation issues
-        function checkForPunctuationIssues(text) {
-            const issues = [];
+        return issues;
+    }
 
-            // Split sentences based on punctuation
-            const sentences = text.split(/(?<=[.!?])/).map(sentence => sentence.trim()).filter(Boolean);
+    // Additional grammar rule checks
+    function checkForGrammarRules(text) {
+        const issues = [];
 
-            // Check for missing final punctuation in sentences
-            sentences.forEach(sentence => {
-                const lastChar = sentence.slice(-1);
-                if (![".", "!", "?"].includes(lastChar)) {
-                    issues.push(`The sentence "${sentence}" may be missing punctuation at the end.`);
-                }
-
-                // Check for incorrect question mark usage
-                const questionWords = /^(what|how|why|where|is|are|do|does|can|could|would|should|who)\s/i;
-                const isQuestion = questionWords.test(sentence);
-
-                // Ensure the question mark is used correctly
-                if (lastChar === '?' && !isQuestion) {
-                    issues.push(`The sentence "${sentence}" appears to be a statement but ends with a question mark.`);
-                } else if (isQuestion && lastChar === '.') {
-                    issues.push(`Consider changing the period to a question mark in: "${sentence}".`);
+        // Check for subject-verb agreement (very basic check)
+        const subjectVerbAgreementRegex = /\b(I|he|she|it|they|we|you)\s+(is|are)\b/gi;
+        const agreementMatches = text.match(subjectVerbAgreementRegex);
+        if (agreementMatches) {
+            agreementMatches.forEach(match => {
+                if (match.includes("are") && ["I", "he", "she", "it"].includes(match.split(" ")[0])) {
+                    issues.push(`Incorrect subject-verb agreement: "${match}". Use "is" instead of "are".`);
+                } else if (match.includes("is") && ["they", "we", "you"].includes(match.split(" ")[0])) {
+                    issues.push(`Incorrect subject-verb agreement: "${match}". Use "are" instead of "is".`);
                 }
             });
+        }
 
-            // Check for common misuse of commas
-            sentences.forEach(sentence => {
-                // Check for comma splices (i.e., connecting two independent clauses)
-                const clauses = sentence.split(",").map(clause => clause.trim());
-                if (clauses.length > 1 && clauses.some(clause => clause.includes("and") || clause.includes("but"))) {
-                    issues.push(`Check for possible comma splice in this sentence: "${sentence}"`);
-                }
-
-                // Check for unnecessary commas
-                const commaCount = (sentence.match(/,/g) || []).length;
-                if (commaCount > 2) {
-                    issues.push(`Consider reviewing your comma usage in the sentence: "${sentence}"`);
-                }
-
-                // Check for missing commas after introductory phrases
-                const introductoryPhrases = /^(although|because|if|when|while|after|before|since|despite|in order to|to|as|for)\s/i;
-                if (introductoryPhrases.test(sentence) && !sentence.includes(',')) {
-                    issues.push(`Consider adding a comma after the introductory phrase in: "${sentence}"`);
-                }
+        // Check for run-on sentences (very basic check based on conjunctions)
+        const runOnSentenceRegex = /[a-zA-Z0-9]+\s*,\s*and\s*[a-zA-Z0-9]+/g;
+        const runOnMatches = text.match(runOnSentenceRegex);
+        if (runOnMatches) {
+            runOnMatches.forEach(match => {
+                issues.push(`Possible run-on sentence detected: "${match}". Consider breaking it into two sentences.`);
             });
-
-            // Check for overuse of question marks or exclamation marks
-            const questionMarks = (text.match(/\?/g) || []).length;
-            const exclamationMarks = (text.match(/!/g) || []).length;
-            if (questionMarks > 1) {
-                issues.push("Too many question marks detected. Consider rephrasing.");
-            }
-            if (exclamationMarks > 1) {
-                issues.push("Too many exclamation marks detected. Consider rephrasing.");
-            }
-
-            return issues;
         }
 
-        // AI-driven smart suggestions function
-        function generateSmartSuggestions(text, matches) {
-            const suggestions = [];
-
-            if (matches.length > 0) {
-                // If grammar or spelling issues are found
-                suggestions.push("Review the highlighted errors to improve clarity.");
+        // Check for common grammar issues
+        const commonlyConfusedWords = {
+            "their": "there, they're",
+            "its": "it's",
+            "to": "too, two",
+            "your": "you're",
+            "than": "then"
+        };
+        
+        Object.keys(commonlyConfusedWords).forEach(word => {
+            const regex = new RegExp(`\\b${word}\\b`, 'gi');
+            if (text.match(regex)) {
+                issues.push(`Check the usage of "${word}". It may be confused with: ${commonlyConfusedWords[word]}`);
             }
+        });
 
-            const punctuationIssue = matches.some(match => match.rule.issueType === "typographical");
-            if (punctuationIssue) {
-                suggestions.push("Make sure your text has proper punctuation for clarity.");
-            }
+        return issues;
+    }
 
-            const suggestionForShortText = text.length < 20;
-            if (suggestionForShortText) {
-                suggestions.push("Consider expanding your ideas for more clarity.");
-            }
-
-            const suggestionForLongSentences = (text.match(/\./g) || []).length > 3; // Example: check for too many sentences
-            if (suggestionForLongSentences) {
-                suggestions.push("Try to break down long sentences for easier understanding.");
-            }
-
-            if (suggestions.length === 0) {
-                suggestions.push("Your text looks great!");
-            }
-
-            return suggestions.join(" ");
+    function generateSmartSuggestions(text, matches) {
+        // Simple AI suggestions (mock implementation)
+        const suggestions = [];
+        if (text.split(' ').length > 15) {
+            suggestions.push("Consider breaking long sentences into smaller ones for clarity.");
         }
-    </script>
+        if (matches.length > 3) {
+            suggestions.push("You have multiple issues. Consider revising the entire text for coherence.");
+        }
+        return suggestions.join(" ");
+    }
+</script>
 
 </body>
-
 </html>
