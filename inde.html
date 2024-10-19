@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grammar and Spell Checker</title>
+    <title>Grammar and Spell Checker with Highlighting</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; }
         .container { position: relative; }
@@ -15,20 +15,27 @@
             font-family: inherit;
             line-height: 1.5;
         }
-        textarea { position: absolute; top: 0; left: 0; background: transparent; z-index: 1; color: transparent; caret-color: black; }
+        textarea { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            background: transparent; 
+            z-index: 1; 
+            color: transparent; 
+            caret-color: black; /* Only caret visible */
+        }
         .highlightedText {
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            white-space: pre-wrap; /* Preserve whitespace and newlines */
+            word-wrap: break-word; /* Ensure long words break */
             z-index: 0;
         }
         .highlight { background-color: yellow; }
         #results { margin-top: 20px; }
     </style>
-    <link rel="icon" href="Canvas Thing.PNG">
 </head>
 <body>
 
-<h1>Grammar and Spell Checker By Ethan</h1>
+<h1>Grammar and Spell Checker with Highlighting</h1>
 
 <div class="container">
     <textarea id="textInput" placeholder="Type or paste your text here..." oninput="syncText()"></textarea>
@@ -40,10 +47,10 @@
 <div id="results"></div>
 
 <script>
+    // Sync the content of the textarea to the div for highlighting
     function syncText() {
-        // Sync the content of the textarea to the highlighted div without highlighting yet
         const text = document.getElementById("textInput").value;
-        document.getElementById("highlightedText").textContent = text;
+        document.getElementById("highlightedText").textContent = text; // Initially without highlighting
     }
 
     function checkGrammar() {
@@ -60,27 +67,40 @@
         .then(response => response.json())
         .then(data => {
             const highlightedTextDiv = document.getElementById("highlightedText");
+            const resultsDiv = document.getElementById("results");
             let highlightedText = text;
             let offsetAdjustment = 0;
 
+            resultsDiv.innerHTML = '';  // Clear previous results
+
             if (data.matches.length === 0) {
-                document.getElementById("results").innerHTML = "<p>No grammar or spelling issues found.</p>";
-                syncText();
+                resultsDiv.innerHTML = "<p>No grammar or spelling issues found.</p>";
+                syncText(); // No errors, sync plain text
             } else {
-                data.matches.forEach(match => {
+                // Process and highlight errors
+                data.matches.forEach((match, index) => {
                     const start = match.offset + offsetAdjustment;
                     const end = start + match.length;
+                    const errorSnippet = text.slice(match.offset, match.offset + match.length);
 
-                    // Insert span with 'highlight' class around the error
+                    // Highlight the error in the text using a span
                     highlightedText = highlightedText.substring(0, start) + 
                                       `<span class="highlight">${highlightedText.substring(start, end)}</span>` + 
                                       highlightedText.substring(end);
 
-                    // Adjust offset to account for the length of the added span tags
+                    // Adjust offset for added span tags
                     offsetAdjustment += `<span class="highlight"></span>`.length;
+
+                    // Create a detailed issue display
+                    const issue = document.createElement("p");
+                    issue.innerHTML = `<strong>Issue ${index + 1}:</strong> ${match.message}<br>
+                                       <strong>Error:</strong> "${errorSnippet}"<br>
+                                       <strong>Position:</strong> Character ${match.offset} to ${match.offset + match.length}<br>
+                                       <strong>Suggestion:</strong> ${match.replacements.map(r => r.value).join(", ")}`;
+                    resultsDiv.appendChild(issue);
                 });
 
-                // Update the highlighted div with highlighted errors
+                // Update the highlighted div with the highlighted errors
                 highlightedTextDiv.innerHTML = highlightedText;
             }
         })
