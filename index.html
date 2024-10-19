@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>about: blank</title>
+    <title>Grammar Checker</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; }
         .container { position: relative; }
@@ -109,7 +109,7 @@
                 highlightedTextDiv.innerHTML = highlightedText;
 
                 // AI Suggestion: Improving style or rephrasing
-                const smartSuggestion = generateSmartSuggestions(text);
+                const smartSuggestion = generateSmartSuggestions(text, data.matches);
                 aiSuggestionsDiv.innerHTML = `<strong>AI Suggestion:</strong> ${smartSuggestion}`;
             }
         })
@@ -120,17 +120,24 @@
     }
 
     // AI-driven smart suggestions function
-    function generateSmartSuggestions(text) {
-        // Simple AI rephrasing suggestion example
-        const suggestions = [
-            "Consider using more concise language.",
-            "Try to simplify complex sentences.",
-            "Use more active voice for a stronger tone.",
-            "Ensure clarity by breaking long sentences into smaller ones."
-        ];
-        // You could make this more dynamic by analyzing the text
-        const suggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
-        return suggestion;
+    function generateSmartSuggestions(text, matches) {
+        const suggestionForPunctuation = matches.some(match => match.rule.issueType === "typographical");
+        const suggestionForShortText = text.length < 20;
+
+        if (suggestionForPunctuation) {
+            return "Make sure your text has proper punctuation for clarity.";
+        } else if (suggestionForShortText) {
+            return "Try to expand on your ideas for more clarity.";
+        } else {
+            // More general style improvement suggestions
+            const suggestions = [
+                "Consider using more concise language.",
+                "Try to simplify complex sentences.",
+                "Use more active voice for a stronger tone.",
+                "Ensure clarity by breaking long sentences into smaller ones."
+            ];
+            return suggestions[Math.floor(Math.random() * suggestions.length)];
+        }
     }
 </script>
 
