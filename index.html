@@ -116,10 +116,10 @@
                 });
             }
 
-            // Check for additional grammar rules
-            const grammarIssues = checkForGrammarRules(text);
-            if (grammarIssues.length > 0) {
-                grammarIssues.forEach(issue => {
+            // Check for incomplete sentences first
+            const incompleteSentences = checkForIncompleteSentences(text);
+            if (incompleteSentences.length > 0) {
+                incompleteSentences.forEach(issue => {
                     const issueElement = document.createElement("p");
                     issueElement.innerHTML = issue;
                     resultsDiv.appendChild(issueElement);
@@ -172,8 +172,11 @@
 
         sentences.forEach(sentence => {
             const clauses = sentence.split(",").map(clause => clause.trim());
-            if (clauses.length > 1 && clauses.some(clause => clause.includes("and") || clause.includes("but"))) {
-                issues.push(`Check for possible comma splice in this sentence: "${sentence}"`);
+            if (clauses.length > 1) {
+                const hasConjunction = clauses.some(clause => /(\band\b|\bor\b|\bbut\b|\bso\b)/i.test(clause));
+                if (!hasConjunction) {
+                    issues.push(`Check for possible run-on sentence in: "${sentence}"`);
+                }
             }
 
             const commaCount = (sentence.match(/,/g) || []).length;
@@ -182,7 +185,10 @@
             }
 
             const introductoryPhrases = /^(although|because|if|when|while|after|before|since|despite|in order to|to|as|for)\s/i;
-            if (introductoryPhrases.test(sentence) && !sentence.includes(',')) {
+            const hasSubjectAndVerb = /(\b(I|you|he|she|it|we|they)\b.+(\bis\b|\bare\b|\bwas\b|\bwere\b|\bhas\b|\bhave\b))/i.test(sentence);
+
+            // Suggest comma only if the sentence has both subject and verb
+            if (introductoryPhrases.test(sentence) && !sentence.includes(',') && hasSubjectAndVerb) {
                 issues.push(`Consider adding a comma after the introductory phrase in: "${sentence}"`);
             }
         });
@@ -199,45 +205,17 @@
         return issues;
     }
 
-    // Additional grammar rule checks
-    function checkForGrammarRules(text) {
+    // Check for incomplete sentences first (and avoid suggesting commas for those sentences)
+    function checkForIncompleteSentences(text) {
         const issues = [];
+        const sentences = text.split(/(?<=[.!?])/).map(sentence => sentence.trim()).filter(Boolean);
 
-        // Check for subject-verb agreement (very basic check)
-        const subjectVerbAgreementRegex = /\b(I|he|she|it|they|we|you)\s+(is|are)\b/gi;
-        const agreementMatches = text.match(subjectVerbAgreementRegex);
-        if (agreementMatches) {
-            agreementMatches.forEach(match => {
-                if (match.includes("are") && ["I", "he", "she", "it"].includes(match.split(" ")[0])) {
-                    issues.push(`Incorrect subject-verb agreement: "${match}". Use "is" instead of "are".`);
-                } else if (match.includes("is") && ["they", "we", "you"].includes(match.split(" ")[0])) {
-                    issues.push(`Incorrect subject-verb agreement: "${match}". Use "are" instead of "is".`);
-                }
-            });
-        }
+        sentences.forEach(sentence => {
+            const hasVerb = /\b(is|are|was|were|has|have|does|do|can|will|shall)\b/i.test(sentence);
+            const hasSubject = /\b(I|you|he|she|it|we|they)\b/i.test(sentence);
 
-        // Check for run-on sentences
-        const runOnSentenceRegex = /(\w+[,;]?\s+)+(\w+[,;]?\s+){2,}/g;
-        const runOnMatches = text.match(runOnSentenceRegex);
-        if (runOnMatches) {
-            runOnMatches.forEach(match => {
-                issues.push(`Possible run-on sentence detected: "${match}". Consider breaking it into two sentences.`);
-            });
-        }
-
-        // Check for commonly confused words
-        const commonlyConfusedWords = {
-            "their": "there, they're",
-            "its": "it's",
-            "to": "too, two",
-            "your": "you're",
-            "than": "then"
-        };
-
-        Object.keys(commonlyConfusedWords).forEach(word => {
-            const regex = new RegExp(`\\b${word}\\b`, 'gi');
-            if (text.match(regex)) {
-                issues.push(`Check the usage of "${word}". It may be confused with: ${commonlyConfusedWords[word]}`);
+            if (!hasVerb || !hasSubject) {
+                issues.push(`The sentence "${sentence}" may be incomplete or missing a key element.`);
             }
         });
 
